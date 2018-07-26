@@ -1,6 +1,6 @@
 import libtorrent
 import time, sys
-import xbmcvfs
+import xbmc, xbmcvfs
 import AddonSignals
 from threading import Thread
 
@@ -9,7 +9,7 @@ class PeertubeDownloader(Thread):
     A class to download peertube torrents in the background
     """
 
-    def init(self, magnet_f):
+    def __init__(self, magnet_f):
         """
         :param magnet_f: str
         :return: None
@@ -56,6 +56,16 @@ class PeertubeService():
     """
     """
 
+    def __init__():
+        """
+        PeertubeService initialisation function
+        """
+
+        # Create our temporary directory 
+        fpath = xbmc.translatePath('special://temp') + '/plugin.video.peertube'
+        if not xbmcvfs.exists(fpath):
+            xbmcvfs.mkdir(fpath)
+
     def download_torrent(self, data):
         """
         Start a downloader thread to download torrent specified by data['magnet_f']
@@ -68,6 +78,8 @@ class PeertubeService():
 
     def run(self):
         """
+        Main loop of the PeertubeService class, registring the start_download signal to start a 
+            peertubeDownloader thread when needed, and exit when Kodi is shutting down
         """
 
         # Launch the download_torrent callback function when the 'start_download' signal is received
