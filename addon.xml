@@ -26,7 +26,7 @@ First PoC (download not in background)
 Hello world
     </news>
     <assets>
-        <icon></icon>
+        <icon>icon.png</icon>
         <fanart></fanart>
         <banner></banner>
         <clearlogo></clearlogo>
