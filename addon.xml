@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="plugin.video.peertube" name="PeerTube" version="0.0.2" provider-name="Cyrille Bollu">
+  <requires>
+    <import addon="xbmc.python" version="2.25.0"/>
+  </requires>
+  <extension point="xbmc.python.pluginsource" library="peertube.py">
+    <provides>video</provides>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <summary lang="en_GB">Plugin for PeerTube</summary>
+    <description lang="en_GB">PeerTube is a federated open source alternative to YouTube</description>
+    <disclaimer lang="en_GB"></disclaimer>
+    <language></language>
+    <platform>all</platform>
+    <license>GNU GENERAL PUBLIC LICENSE. Version 3, 29 June 2007</license>
+    <forum></forum>
+    <website>https://joinpeertube.org</website>
+    <email>cyrille.bollu2@gmail.com</email>
+    <source>https://github.com/StCyr/plugin.video.peertube</source>
+    <news>
+0.0.2
+First PoC (download not in background)
+0.0.1
+Hello world
+    </news>
+    <assets>
+        <icon></icon>
+        <fanart></fanart>
+        <banner></banner>
+        <clearlogo></clearlogo>
+        <screenshot></screenshot>
+    </assets>
+  </extension>
+</addon>
