@@ -56,7 +56,7 @@ class PeertubeService():
     """
     """
 
-    def __init__():
+    def __init__(self):
         """
         PeertubeService initialisation function
         """
