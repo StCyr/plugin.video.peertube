@@ -15,7 +15,7 @@ class PeertubeDownloader(Thread):
         :return: None
         """
         Thread.__init__(self)
-        self.magnet_f
+        self.magnet_f = magnet_f
 
     def run(self):
         """
