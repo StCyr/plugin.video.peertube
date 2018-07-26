@@ -58,7 +58,7 @@ class PeertubeAddon():
 
         # Create a list for our items.
         listing = []
-        for video in videos:
+        for video in videos['data']:
 
             # Create a list item with a text label
             list_item = xbmcgui.ListItem(label=video['name'])
@@ -99,12 +99,12 @@ class PeertubeAddon():
             # Save magnet link temporarily.
             tmp_f = xbmc.translatePath('special://temp') + '/plugin.video.peertube/' + video['uuid']
             f = xbmcvfs.File(tmp_f, 'w')
-        f.write(magnet)
-        f.close()
+            f.write(magnet)
+            f.close()
 
-        # Add our item to the listing as a 3-element tuple.
-        url = '{0}?action=play&magnet={1}'.format(__url__, tmp_f)
-        listing.append((url, list_item, False))
+            # Add our item to the listing as a 3-element tuple.
+            url = '{0}?action=play&magnet={1}'.format(__url__, tmp_f)
+            listing.append((url, list_item, False))
 
         # Add our listing to Kodi.
         xbmcplugin.addDirectoryItems(__handle__, listing, len(listing))
