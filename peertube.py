@@ -10,13 +10,11 @@
 #         or only when the addon is running, or only when kodi is playing one,...?
 #       - Do sanity checks on received data
 
-import libtorrent
 import time, sys
 import urllib2, json
 from urlparse import parse_qsl
+import xbmc, xbmcgui, xbmcplugin, xbmcvfs
 import AddonSignals
-import xbmcgui, xbmcplugin, xbmcvfs
-from threading import Thread
 
 # Get the plugin url in plugin:// notation.
 __url__ = sys.argv[0]

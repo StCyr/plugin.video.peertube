@@ -1,9 +1,7 @@
 import libtorrent
 import time, sys
-import urllib2, json
-from urlparse import parse_qsl
+import xbmcvfs
 import AddonSignals
-import xbmcgui, xbmcplugin, xbmcvfs
 from threading import Thread
 
 class PeertubeDownloader(Thread):
