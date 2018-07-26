@@ -33,6 +33,7 @@ def list_videos():
     inst = 'https://peertube.cpy.re'
 
     # Get the list of videos published by the instance
+    # TODO: Handle failures
     resp = urllib2.urlopen(inst + '/api/v1/videos')
     videos = json.load(resp)
 
@@ -45,9 +46,10 @@ def list_videos():
     for video in videos:
 
         # Create a list item with a text label
-        # TODO: Get video thumbnail and add it to list_item
         list_item = xbmcgui.ListItem(label=video['name'])
-        # list_item = xbmcgui.ListItem(label=metadata['name'], thumbnailImage=video['thumb'])
+        
+        # Add thumbnail
+        list_item.setArt({'thumb': inst + '/' + video['thumbnailPath'])
 
         # Set a fanart image for the list item.
         #list_item.setProperty('fanart_image', video['thumb'])
