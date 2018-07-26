@@ -99,7 +99,7 @@ class PeertubeAddon():
             # Save magnet link temporarily.
             tmp_f = xbmc.translatePath('special://temp') + '/plugin.video.peertube/' + video['uuid']
             f = xbmcvfs.File(tmp_f, 'w')
-            f.write(magnet)
+            f.write(bytearray(magnet, 'utf8'))
             f.close()
 
             # Add our item to the listing as a 3-element tuple.
