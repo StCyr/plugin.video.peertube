@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 # A Kodi Addon to play video hosted on the peertube service (http://joinpeertube.org/)
 #
 # This is just a Proof-Of-Concept atm but I hope I will be able to make it evolve to
