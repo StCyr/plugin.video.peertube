@@ -75,6 +75,8 @@ def list_videos():
         # TODO: Get the best quality torrent given settings and/or available bandwidth
         #       See how they do that in the peerTube client's code 
         min_size = -1
+        resp = urllib2.urlopen(inst + '/api/v1/videos/' + video['uuid'])
+        metadata = json.load(resp)
         for f in metadata['files']:
           if f['size'] < min_size or min_size == -1:
             # TODO: See if using magnet wouldn't be better
