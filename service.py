@@ -56,14 +56,14 @@ class PeertubeService():
     """
     """
 
-    def download_torrent(self, magnet_f):
+    def download_torrent(self, data):
         """
-        Start a downloader thread to download torrent specified by magnet_f
-        :param magnet_f: str
+        Start a downloader thread to download torrent specified by data['magnet_f']
+        :param data: dict
         :return: None
         """
 
-        downloader = PeertubeDownloader(magnet_f) 
+        downloader = PeertubeDownloader(data['magnet_f']) 
         downloader.start()
 
     def run(self):
@@ -71,7 +71,7 @@ class PeertubeService():
         """
 
         # Launch the download_torrent callback function when the 'start_download' signal is received
-        AddonSignals.registerSlot('plugin.video.peertube', 'start_download', download_torrent)
+        AddonSignals.registerSlot('plugin.video.peertube', 'start_download', self.download_torrent)
 
         # Monitor Kodi's shutdown signal
         monitor = xbmc.Monitor()
