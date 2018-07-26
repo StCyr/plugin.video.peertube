@@ -135,7 +135,7 @@ class PeertubeAddon():
         AddonSignals.sendSignal('start_download', {'magnet_f': magnet_f})
 
         # Wait until the PeerTubeDownloader has downloaded all the torrent's metadata + a little bit more
-        AddonSignals.registerSlot('plugin.video.peertube', 'metadata_downloaded', play_video_continue)
+        AddonSignals.registerSlot('plugin.video.peertube', 'metadata_downloaded', self.play_video_continue)
         while self.play == 0:
             xbmc.sleep(1000)
         xbmc.sleep(3000)
