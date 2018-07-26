@@ -8,6 +8,7 @@
 #       - Make sure we are seeding when downloading and watching
 #       - When downloaded torrents are kept, do we want to seed them all the time,
 #         or only when the addon is running, or only when kodi is playing one,...?
+#       - Do sanity checks on received data
 
 import libtorrent
 import time, sys
@@ -27,35 +28,46 @@ def list_videos():
     :return: None
     """
 
-    # List of videos.
-    # TODO: Get this list from an instance, several instances, or the result from a search
-    videos = ['https://peertube.cpy.re/api/v1/videos/5a6133b8-3e0c-40dc-b859-69d0540c3fe5',
-             'https://peertube.cpy.re/api/v1/videos/a8ea95b8-0396-49a6-8f30-e25e25fb2828']
+    # TODO: Make the instance configurable
+    #       Make it actuatly possible to use several instances
+    inst = 'https://peertube.cpy.re'
+
+    # Get the list of videos published by the instance
+    resp = urllib2.urlopen(inst + '/api/v1/videos')
+    videos = json.load(resp)
+
+    # Return when no videos are found
+    if videos['total'] == 0:
+        return
 
     # Create a list for our items.
     listing = []
     for video in videos:
-        # Get video metadata
-        resp = urllib2.urlopen(video)
-        metadata = json.load(resp)
 
         # Create a list item with a text label
         # TODO: Get video thumbnail and add it to list_item
-        list_item = xbmcgui.ListItem(label=metadata['name'])
+        list_item = xbmcgui.ListItem(label=video['name'])
         # list_item = xbmcgui.ListItem(label=metadata['name'], thumbnailImage=video['thumb'])
 
         # Set a fanart image for the list item.
         #list_item.setProperty('fanart_image', video['thumb'])
 
-        # Set additional info for the list item.
-        # TODO: Manage multiple tags
-        # TODO: Add video's description to the list_item's info
-        list_item.setInfo('video', {'title': metadata['name'], 'tags': metadata['tags'][0]})
+        # Compute media info from video's metadata
+        info = {'title': video['name'],
+                'playcount': video['views'],
+                'plotoutline': video['description'],
+                'duration': video['duration']
+                }
 
-        # Set 'IsPlayable' property to 'true'.
+        # Add a rating based on likes and dislikes
+        if video['likes'] > 0 or video['dislikes'] > 0):
+            info['rating'] = video['likes']/(video['likes'] + video['dislikes']
+
+        # Set additional info for the list item.
+        list_item.setInfo('video', info) 
+
         # This is mandatory for playable items!
         list_item.setProperty('IsPlayable', 'true')
-
 
         # Find smallest file's torrentUrl
         # TODO: Get the best quality torrent given settings and/or available bandwidth
