@@ -43,7 +43,7 @@ class PeertubeDownloader(Thread):
         signal_sent = 0
         while not h.is_seed():
             time.sleep(1)
-            s = h.status(e)
+            s = h.status()
             # Inform addon that all the metadata has been downloaded and that it may start playing the torrent
             if s.status >=3 and signal_sent == 0:
                 AddonSignals.sendSignal('metadata_downloaded', {'name': h.name()} )
