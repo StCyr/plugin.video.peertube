@@ -23,54 +23,6 @@ __url__ = sys.argv[0]
 # Get the plugin handle as an integer number.
 __handle__ = int(sys.argv[1])
 
-class PeertubeDownloader(Thread):
-    """
-    A class to download peertube torrents in the background
-    """
-
-    def init(self, magnet_f):
-        """
-        :param magnet_f: str
-        :return: None
-        """
-        Thread.__init__(self)
-        self.magnet_f
-
-    def run(self):
-        """
-        Download the torrent specified by self.magnet_f
-        :param: None
-        :return: None
-        """
-
-        # Open bitTorrent session
-        ses = libtorrent.session()
-        ses.listen_on(6881, 6891)
-
-        # Read magnet's data
-        f = xbmcvfs.File(self.magnet_f, 'r')
-        magnet = f.read()
-
-        # Add torrent
-        fpath = xbmc.translatePath('special://temp')
-        h = ses.add_torrent({'url': magnet, 'save_path': fpath})
-
-        # Set sequential mode to allow watching while downloading
-        h.set_sequential_download(True)
-
-        # Download torrent
-        signal_sent = 0
-        while not h.is_seed():
-            time.sleep(1)
-            s = h.status(e)
-            # Inform addon that all the metadata has been downloaded and that it may start playing the torrent
-            if s.status >=3 and signal_sent == 0:
-                AddonSignals.sendSignal('metadata_downloaded', {'name': h.name()} )
-                signal_sent = 1
-
-        # Everything is done
-        return
-
 class PeertubeAddon():
     """
     Main class of the addon
@@ -82,6 +34,7 @@ class PeertubeAddon():
 
         # Nothing to play at initialisation
         self.play = 0
+        self.torrent_name = ''
         
         return None
 
@@ -146,7 +99,7 @@ class PeertubeAddon():
                 magnet = f['magnetUri'] 
 
             # Save magnet link temporarily.
-            tmp_f = xbmc.translatePath('special://temp') + '/plugin.video.peertube/todo'
+            tmp_f = xbmc.translatePath('special://temp') + '/plugin.video.peertube/' + video['uuid']
             f = xbmcvfs.File(tmp_f, 'w')
         f.write(magnet)
         f.close()
@@ -160,11 +113,17 @@ class PeertubeAddon():
         xbmcplugin.addSortMethod(__handle__, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
         xbmcplugin.endOfDirectory(__handle__)
 
-    def play_video_continue():
+    def play_video_continue(data):
         """
+        Callback function to let the play_video function resume when the PeertubeDownloader
+            has downloaded all the torrent's metadata
+        :param data: dict
+        :return: None
         """
 
         self.play = 1    
+        self.torrent_name = data['name']
+
         return
 
     def play_video(self, magnet_f):
@@ -175,7 +134,7 @@ class PeertubeAddon():
         """
 
         # Start a downloader thread
-        pd = PeertubeDownloader.start(magnet_f)
+        AddonSignals.sendSignal('start_download', {'magnet_f': magnet_f})
 
         # Wait until the PeerTubeDownloader has downloaded all the torrent's metadata + a little bit more
         AddonSignals.RegisterSlot('plugin.video.peertube', 'metadata_downloaded', play_video_continue)
@@ -184,7 +143,7 @@ class PeertubeAddon():
         xbmc.sleep(3000)
 
         # Pass the item to the Kodi player for actual playback.
-        path = fpath + h.name()
+        path = fpath + self.torrent_name
         play_item = xbmcgui.ListItem(path=path)
         xbmcplugin.setResolvedUrl(__handle__, True, listitem=play_item)
 
