@@ -5,4 +5,3 @@ This code is still proof-of-concept but it works, and you're welcome to improve 
 # Requirements
 
 * Kodi 17 or above
-* script.module.addon.signals 0.0.3 or above (https://github.com/ruuk/script.module.addon.signals)
