@@ -33,7 +33,7 @@ class PeertubeDownloader(Thread):
 
         # Add torrent
         xbmc.log('PeertubeDownloader: Adding torrent ' + self.torrent, xbmc.LOGDEBUG)
-        h = ses.add_torrent({'url': torrent, 'save_path': self.temp_dir})
+        h = ses.add_torrent({'url': self.torrent, 'save_path': self.temp_dir})
 
         # Set sequential mode to allow watching while downloading
         h.set_sequential_download(True)
