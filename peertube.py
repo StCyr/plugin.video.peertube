@@ -30,7 +30,7 @@ class PeertubeAddon():
         """
         """
 
-        xbmc.log('PeertubeAddon: Initialising', xbmc.LOGINFO)
+        xbmc.log('PeertubeAddon: Initialising', xbmc.LOGDEBUG)
         # Nothing to play at initialisation
         self.play = 0
         self.torrent_name = ''
@@ -114,7 +114,7 @@ class PeertubeAddon():
         :return: None
         """
 
-        xbmc.log('PeertubeAddon: Received metadata_downloaded signal, will start playing media', xbmc.LOGINFO)
+        xbmc.log('PeertubeAddon: Received metadata_downloaded signal, will start playing media', xbmc.LOGDEBUG)
         self.play = 1    
         self.torrent_f = data['file']
 
@@ -127,7 +127,7 @@ class PeertubeAddon():
         :return: None
         """
 
-        xbmc.log('PeertubeAddon: playing video ' + torrent_url, xbmc.LOGINFO)
+        xbmc.log('PeertubeAddon: playing video ' + torrent_url, xbmc.LOGDEBUG)
         # Start a downloader thread
         AddonSignals.sendSignal('start_download', {'url': torrent_url})
 

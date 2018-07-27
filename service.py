@@ -26,27 +26,27 @@ class PeertubeDownloader(Thread):
         :return: None
         """
 
-        xbmc.log('PeertubeDownloader: Opening bitTorent session', xbmc.LOGINFO)
+        xbmc.log('PeertubeDownloader: Opening bitTorent session', xbmc.LOGDEBUG)
         # Open bitTorrent session
         ses = libtorrent.session()
         ses.listen_on(6881, 6891)
 
         # Add torrent
-        xbmc.log('PeertubeDownloader: Adding torrent ' + self.torrent, xbmc.LOGINFO)
+        xbmc.log('PeertubeDownloader: Adding torrent ' + self.torrent, xbmc.LOGDEBUG)
         h = ses.add_torrent({'url': torrent, 'save_path': self.temp_dir})
 
         # Set sequential mode to allow watching while downloading
         h.set_sequential_download(True)
 
         # Download torrent
-        xbmc.log('PeertubeDownloader: Downloading torrent ' + self.torrent, xbmc.LOGINFO)
+        xbmc.log('PeertubeDownloader: Downloading torrent ' + self.torrent, xbmc.LOGDEBUG)
         signal_sent = 0
         while not h.is_seed():
             xbmc.sleep(1000)
             s = h.status()
             # Inform addon that all the metadata has been downloaded and that it may start playing the torrent
             if s.state >=3 and signal_sent == 0:
-                xbmc.log('PeertubeDownloader: Received all torrent metadata, notifying PeertubeAddon', xbmc.LOGINFO)
+                xbmc.log('PeertubeDownloader: Received all torrent metadata, notifying PeertubeAddon', xbmc.LOGDEBUG)
                 i = h.torrent_file()
                 f = self.temp_dir + i.name()
                 AddonSignals.sendSignal('metadata_downloaded', {'file': f})
@@ -64,7 +64,7 @@ class PeertubeService():
         PeertubeService initialisation function
         """
 
-        xbmc.log('PeertubeService: Initialising', xbmc.LOGINFO)
+        xbmc.log('PeertubeService: Initialising', xbmc.LOGDEBUG)
         # Create our temporary directory
         self.temp = xbmc.translatePath('special://temp') + '/plugin.video.peertube/'
         if not xbmcvfs.exists(self.temp):
@@ -79,7 +79,7 @@ class PeertubeService():
         :return: None
         """
 
-        xbmc.log('PeertubeService: Received a start_download signal', xbmc.LOGINFO)
+        xbmc.log('PeertubeService: Received a start_download signal', xbmc.LOGDEBUG)
         downloader = PeertubeDownloader(data['url'], self.temp) 
         downloader.start()
    
@@ -95,7 +95,7 @@ class PeertubeService():
         AddonSignals.registerSlot('plugin.video.peertube', 'start_download', self.download_torrent)
 
         # Monitor Kodi's shutdown signal
-        xbmc.log('PeertubeService: service started, Waiting for signals', xbmc.LOGINFO)
+        xbmc.log('PeertubeService: service started, Waiting for signals', xbmc.LOGDEBUG)
         monitor = xbmc.Monitor()
         while not monitor.abortRequested():
             if monitor.waitForAbort(1):
@@ -107,7 +107,7 @@ class PeertubeService():
 
 if __name__ == '__main__':
     # Start a peertubeService instance
-    xbmc.log('PeertubeService: Starting', xbmc.LOGINFO)
+    xbmc.log('PeertubeService: Starting', xbmc.LOGDEBUG)
     service = PeertubeService()
     service.run()
-    xbmc.log('PeertubeService: Exiting', xbmc.LOGINFO)
+    xbmc.log('PeertubeService: Exiting', xbmc.LOGDEBUG)
