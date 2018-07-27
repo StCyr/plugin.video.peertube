@@ -110,7 +110,7 @@ class PeertubeAddon():
         xbmcplugin.addSortMethod(__handle__, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
         xbmcplugin.endOfDirectory(__handle__)
 
-    def play_video_continue(data):
+    def play_video_continue(self, data):
         """
         Callback function to let the play_video function resume when the PeertubeDownloader
             has downloaded all the torrent's metadata
