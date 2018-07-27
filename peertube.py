@@ -9,6 +9,7 @@
 #       - When downloaded torrents are kept, do we want to seed them all the time,
 #         or only when the addon is running, or only when kodi is playing one,...?
 #       - Do sanity checks on received data
+#       - Add a menu: 1) browse instance, 2) browse connected instances, 3) connect to ..., 4) search...
 
 import time, sys
 import urllib2, json
@@ -51,7 +52,9 @@ class PeertubeAddon():
 
         # Get the list of videos published by the instance
         # TODO: Handle failures
-        resp = urllib2.urlopen(inst + '/api/v1/videos')
+        #       Make count configurable
+        #       Set up pagination
+        resp = urllib2.urlopen(inst + '/api/v1/videos?count=21')
         videos = json.load(resp)
 
         # Return when no videos are found
