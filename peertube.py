@@ -95,16 +95,10 @@ class PeertubeAddon():
             metadata = json.load(resp)
             for f in metadata['files']:
               if f['size'] < min_size or min_size == -1:
-                magnet = f['magnetUri'] 
-
-            # Save magnet link temporarily.
-            tmp_f = xbmc.translatePath('special://temp') + '/plugin.video.peertube/' + video['uuid']
-            f = xbmcvfs.File(tmp_f, 'w')
-            f.write(bytearray(magnet, 'utf8'))
-            f.close()
+                torrent_url = f['torrentUrl'] 
 
             # Add our item to the listing as a 3-element tuple.
-            url = '{0}?action=play&magnet={1}'.format(__url__, tmp_f)
+            url = '{0}?action=play&url={1}'.format(__url__, torrent_url)
             listing.append((url, list_item, False))
 
         # Add our listing to Kodi.
@@ -122,20 +116,20 @@ class PeertubeAddon():
 
         xbmc.log('PeertubeAddon: Received metadata_downloaded signal, will start playing media', xbmc.LOGINFO)
         self.play = 1    
-        self.torrent_name = data['name']
+        self.torrent_f = data['file']
 
         return
 
-    def play_video(self, magnet_f):
+    def play_video(self, torrent_url):
         """
         Start the torrent's download and play it while being downloaded
-        :param magnet_f: str
+        :param torrent_url: str
         :return: None
         """
 
-        xbmc.log('PeertubeAddon: playing video ' + magnet_f, xbmc.LOGINFO)
+        xbmc.log('PeertubeAddon: playing video ' + torrent_url, xbmc.LOGINFO)
         # Start a downloader thread
-        AddonSignals.sendSignal('start_download', {'magnet_f': magnet_f})
+        AddonSignals.sendSignal('start_download', {'url': torrent_url})
 
         # Wait until the PeerTubeDownloader has downloaded all the torrent's metadata + a little bit more
         AddonSignals.registerSlot('plugin.video.peertube', 'metadata_downloaded', self.play_video_continue)
@@ -144,8 +138,7 @@ class PeertubeAddon():
         xbmc.sleep(3000)
 
         # Pass the item to the Kodi player for actual playback.
-        path = fpath + self.torrent_name
-        play_item = xbmcgui.ListItem(path=path)
+        play_item = xbmcgui.ListItem(path=self.torrent_f)
         xbmcplugin.setResolvedUrl(__handle__, True, listitem=play_item)
 
     def router(self, paramstring):
@@ -163,7 +156,7 @@ class PeertubeAddon():
         # Check the parameters passed to the plugin
         if params:
             # Play a video from a provided URL.
-            self.play_video(params['magnet'])
+            self.play_video(params['url'])
         else:
             # Display the list of videos when the plugin is called from Kodi UI without any parameters
             self.list_videos()

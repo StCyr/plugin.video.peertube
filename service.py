@@ -9,39 +9,37 @@ class PeertubeDownloader(Thread):
     A class to download peertube torrents in the background
     """
 
-    def __init__(self, magnet_f):
+    def __init__(self, url, temp_dir):
         """
-        :param magnet_f: str
+        Initialise a PeertubeDownloader instance for downloading the torrent specified by url
+        :param url, temp_dir: str
         :return: None
         """
         Thread.__init__(self)
-        self.magnet_f = magnet_f
+        self.torrent = url
+        self.temp_dir = temp_dir
 
     def run(self):
         """
-        Download the torrent specified by self.magnet_f
+        Download the torrent specified by self.torrent
         :param: None
         :return: None
         """
 
-        xbmc.log('PeertubeDownloader: Starting a torrent download', xbmc.LOGINFO)
+        xbmc.log('PeertubeDownloader: Opening bitTorent session', xbmc.LOGINFO)
         # Open bitTorrent session
         ses = libtorrent.session()
         ses.listen_on(6881, 6891)
 
-        # Read magnet's data
-        f = xbmcvfs.File(self.magnet_f, 'r')
-        magnet = f.read()
-
         # Add torrent
-        xbmc.log('PeertubeDownloader: Adding torrent ' + magnet, xbmc.LOGINFO)
-        fpath = xbmc.translatePath('special://temp')
-        h = ses.add_torrent({'url': magnet, 'save_path': fpath})
+        xbmc.log('PeertubeDownloader: Adding torrent ' + self.torrent, xbmc.LOGINFO)
+        h = ses.add_torrent({'url': torrent, 'save_path': self.temp_dir})
 
         # Set sequential mode to allow watching while downloading
         h.set_sequential_download(True)
 
         # Download torrent
+        xbmc.log('PeertubeDownloader: Downloading torrent ' + self.torrent, xbmc.LOGINFO)
         signal_sent = 0
         while not h.is_seed():
             xbmc.sleep(1000)
@@ -49,7 +47,9 @@ class PeertubeDownloader(Thread):
             # Inform addon that all the metadata has been downloaded and that it may start playing the torrent
             if s.state >=3 and signal_sent == 0:
                 xbmc.log('PeertubeDownloader: Received all torrent metadata, notifying PeertubeAddon', xbmc.LOGINFO)
-                AddonSignals.sendSignal('metadata_downloaded', {'name': h.name()} )
+                i = h.torrent_file()
+                f = self.temp_dir + i.name()
+                AddonSignals.sendSignal('metadata_downloaded', {'file': f})
                 signal_sent = 1
 
         # Everything is done
@@ -65,20 +65,22 @@ class PeertubeService():
         """
 
         xbmc.log('PeertubeService: Initialising', xbmc.LOGINFO)
-        # Create our temporary directory 
-        fpath = xbmc.translatePath('special://temp') + '/plugin.video.peertube'
-        if not xbmcvfs.exists(fpath):
-            xbmcvfs.mkdir(fpath)
+        # Create our temporary directory
+        self.temp = xbmc.translatePath('special://temp') + '/plugin.video.peertube/'
+        if not xbmcvfs.exists(self.temp):
+            xbmcvfs.mkdir(self.temp)
+
+        return
 
     def download_torrent(self, data):
         """
-        Start a downloader thread to download torrent specified by data['magnet_f']
+        Start a downloader thread to download torrent specified by data['url']
         :param data: dict
         :return: None
         """
 
         xbmc.log('PeertubeService: Received a start_download signal', xbmc.LOGINFO)
-        downloader = PeertubeDownloader(data['magnet_f']) 
+        downloader = PeertubeDownloader(data['url'], self.temp) 
         downloader.start()
    
         return
@@ -98,11 +100,10 @@ class PeertubeService():
         while not monitor.abortRequested():
             if monitor.waitForAbort(1):
                 # Abort was requested while waiting. We must exit
-                # TODO: I must delete all temp files before exiting
+                # TODO: Clean temporary directory
                 break
        
         return
-
 
 if __name__ == '__main__':
     # Start a peertubeService instance
