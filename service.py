@@ -24,6 +24,7 @@ class PeertubeDownloader(Thread):
         :return: None
         """
 
+        xbmc.log('PeertubeDownloader: Starting a torrent download', xbmc.LOGINFO)
         # Open bitTorrent session
         ses = libtorrent.session()
         ses.listen_on(6881, 6891)
@@ -33,6 +34,7 @@ class PeertubeDownloader(Thread):
         magnet = f.read()
 
         # Add torrent
+        xbmc.log('PeertubeDownloader: Adding torrent ' + magnet, xbmc.LOGINFO)
         fpath = xbmc.translatePath('special://temp')
         h = ses.add_torrent({'url': magnet, 'save_path': fpath})
 
@@ -42,10 +44,11 @@ class PeertubeDownloader(Thread):
         # Download torrent
         signal_sent = 0
         while not h.is_seed():
-            time.sleep(1)
+            xbmc.sleep(1000)
             s = h.status()
             # Inform addon that all the metadata has been downloaded and that it may start playing the torrent
             if s.state >=3 and signal_sent == 0:
+                xbmc.log('PeertubeDownloader: Received all torrent metadata, notifying PeertubeAddon', xbmc.LOGINFO)
                 AddonSignals.sendSignal('metadata_downloaded', {'name': h.name()} )
                 signal_sent = 1
 
@@ -61,6 +64,7 @@ class PeertubeService():
         PeertubeService initialisation function
         """
 
+        xbmc.log('PeertubeService: Initialising', xbmc.LOGINFO)
         # Create our temporary directory 
         fpath = xbmc.translatePath('special://temp') + '/plugin.video.peertube'
         if not xbmcvfs.exists(fpath):
@@ -73,8 +77,11 @@ class PeertubeService():
         :return: None
         """
 
+        xbmc.log('PeertubeService: Received a start_download signal', xbmc.LOGINFO)
         downloader = PeertubeDownloader(data['magnet_f']) 
         downloader.start()
+   
+        return
 
     def run(self):
         """
@@ -86,15 +93,20 @@ class PeertubeService():
         AddonSignals.registerSlot('plugin.video.peertube', 'start_download', self.download_torrent)
 
         # Monitor Kodi's shutdown signal
+        xbmc.log('PeertubeService: service started, Waiting for signals', xbmc.LOGINFO)
         monitor = xbmc.Monitor()
         while not monitor.abortRequested():
             if monitor.waitForAbort(1):
                 # Abort was requested while waiting. We must exit
                 # TODO: I must delete all temp files before exiting
                 break
+       
+        return
 
 
 if __name__ == '__main__':
     # Start a peertubeService instance
+    xbmc.log('PeertubeService: Starting', xbmc.LOGINFO)
     service = PeertubeService()
     service.run()
+    xbmc.log('PeertubeService: Exiting', xbmc.LOGINFO)

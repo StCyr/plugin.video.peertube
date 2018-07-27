@@ -20,6 +20,8 @@
     <email>cyrille.bollu2@gmail.com</email>
     <source>https://github.com/StCyr/plugin.video.peertube</source>
     <news>
+0.0.3
+Second PoC (download in background is almost there)
 0.0.2
 First PoC (download not in background)
 0.0.1
