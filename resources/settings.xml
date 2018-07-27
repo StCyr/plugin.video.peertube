@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+    <setting id="preferred_instance" type="text" default="https://framatube.org" label="30000"/>
+</settings>

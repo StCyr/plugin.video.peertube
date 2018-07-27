@@ -13,7 +13,7 @@
 import time, sys
 import urllib2, json
 from urlparse import parse_qsl
-import xbmc, xbmcgui, xbmcplugin, xbmcvfs
+import xbmc, xbmcgui, xbmcaddon, xbmcplugin, xbmcvfs
 import AddonSignals
 
 # Get the plugin url in plugin:// notation.
@@ -28,12 +28,14 @@ class PeertubeAddon():
 
     def __init__(self):
         """
+        Initialisation of the PeertubeAddon class
         """
 
         xbmc.log('PeertubeAddon: Initialising', xbmc.LOGDEBUG)
         # Nothing to play at initialisation
         self.play = 0
         self.torrent_name = ''
+        self.addon = xbmcaddon.Addon()
         
         return None
 
@@ -44,9 +46,8 @@ class PeertubeAddon():
         :return: None
         """
 
-        # TODO: Make the instance configurable
-        #       Make it actuatly possible to use several instances
-        inst = 'https://peertube.cpy.re'
+        # Get the user's preferred peertube instance
+        inst = self.addon.getSetting('preferred_instance')
 
         # Get the list of videos published by the instance
         # TODO: Handle failures
