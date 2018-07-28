@@ -42,7 +42,7 @@ class PeertubeAddon():
         self.selected_inst = addon.getSetting('preferred_instance') 
 
         # Get the number of videos to show per page 
-        self.items_per_page = addon.getSetting('items_per_page') 
+        self.items_per_page = addon.getSetting('items_per_page')
 
         # Nothing to play at initialisation
         self.play = 0
@@ -62,12 +62,14 @@ class PeertubeAddon():
         # TODO: Handle failures
         #       Make count configurable
         #       Set up pagination
-        resp = urllib2.urlopen(self.selected_inst + '/api/v1/videos?count=21&start=' + start)
+        resp = urllib2.urlopen(self.selected_inst + '/api/v1/videos?count=' + self.items_per_page + '&start=' + start)
         videos = json.load(resp)
 
         # Return when no videos are found
         if videos['total'] == 0:
             return
+        
+        # TODO: Add a 'Previous' button when start > 0 
 
         # Create a list for our items.
         listing = []
@@ -112,6 +114,8 @@ class PeertubeAddon():
             # Add our item to the listing as a 3-element tuple.
             url = '{0}?action=play&url={1}'.format(__url__, torrent_url)
             listing.append((url, list_item, False))
+
+        # TODO: Add a 'Next' button if total > (start+1) * items_per_page 
 
         # Add our listing to Kodi.
         xbmcplugin.addDirectoryItems(__handle__, listing, len(listing))
@@ -179,7 +183,7 @@ class PeertubeAddon():
         xbmcplugin.addDirectoryItems(__handle__, listing, len(listing))
 
         # Add a sort method for the virtual folder items (alphabetically, ignore articles)
-         xbmcplugin.addSortMethod(__handle__, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
+        xbmcplugin.addSortMethod(__handle__, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
 
         # Finish creating a virtual folder.
         xbmcplugin.endOfDirectory(__handle__)
@@ -200,7 +204,7 @@ class PeertubeAddon():
         if params:
             if params['action'] == 'browse':
                 # List videos on selected instance
-                self.list_videos(params['start']
+                self.list_videos(params['start'])
             elif params['action'] == 'play':
                 # Play video from provided URL.
                 self.play_video(params['url'])
