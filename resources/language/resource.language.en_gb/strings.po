@@ -17,7 +17,12 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 # Settings (from 30000 to 30019)
+
 msgctxt "#30000"
 msgid "Preferred instance"
+msgstr ""
+
+msgctxt "#30001"
+msgid "Number of videos to show per page"
 msgstr ""
 

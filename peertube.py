@@ -35,14 +35,18 @@ class PeertubeAddon():
         """
 
         xbmc.log('PeertubeAddon: Initialising', xbmc.LOGDEBUG)
+ 
+        addon = xbmc.Addon()
+
+        # Select preferred instance by default
+        self.selected_inst = addon.getSetting('preferred_instance') 
+
+        # Get the number of videos to show per page 
+        self.items_per_page = addon.getSetting('items_per_page') 
 
         # Nothing to play at initialisation
         self.play = 0
         self.torrent_name = ''
- 
-        # Select preferred instance by default
-        addon = xbmc.Addon()
-        self.selected_inst = addon.getSetting('preferred_instance') 
         
         return None
 
