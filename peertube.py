@@ -30,31 +30,35 @@ class PeertubeAddon():
     def __init__(self):
         """
         Initialisation of the PeertubeAddon class
-        """
-
-        xbmc.log('PeertubeAddon: Initialising', xbmc.LOGDEBUG)
-        # Nothing to play at initialisation
-        self.play = 0
-        self.torrent_name = ''
-        self.addon = xbmcaddon.Addon()
-        
-        return None
-
-    def list_videos(self):
-        """
-        Create the list of playable videos in the Kodi interface.
         :param: None
         :return: None
         """
 
-        # Get the user's preferred peertube instance
-        inst = self.addon.getSetting('preferred_instance')
+        xbmc.log('PeertubeAddon: Initialising', xbmc.LOGDEBUG)
+
+        # Nothing to play at initialisation
+        self.play = 0
+        self.torrent_name = ''
+ 
+        # Select preferred instance by default
+        addon = xbmc.Addon()
+        self.selected_inst = addon.getSetting('preferred_instance') 
+        
+        return None
+
+    def list_videos(self, start):
+        """
+        Create the list of playable videos in the Kodi interface.
+        :param start: integer
+        :return: None
+        """
+
 
         # Get the list of videos published by the instance
         # TODO: Handle failures
         #       Make count configurable
         #       Set up pagination
-        resp = urllib2.urlopen(inst + '/api/v1/videos?count=21')
+        resp = urllib2.urlopen(self.selected_inst + '/api/v1/videos?count=21&start=' + start)
         videos = json.load(resp)
 
         # Return when no videos are found
@@ -69,7 +73,7 @@ class PeertubeAddon():
             list_item = xbmcgui.ListItem(label=video['name'])
         
             # Add thumbnail
-            list_item.setArt({'thumb': inst + '/' + video['thumbnailPath']})
+            list_item.setArt({'thumb': self.selected_inst + '/' + video['thumbnailPath']})
 
             # Set a fanart image for the list item.
             #list_item.setProperty('fanart_image', video['thumb'])
@@ -95,7 +99,7 @@ class PeertubeAddon():
             # TODO: Get the best quality torrent given settings and/or available bandwidth
             #       See how they do that in the peerTube client's code 
             min_size = -1
-            resp = urllib2.urlopen(inst + '/api/v1/videos/' + video['uuid'])
+            resp = urllib2.urlopen(self.selected_inst + '/api/v1/videos/' + video['uuid'])
             metadata = json.load(resp)
             for f in metadata['files']:
               if f['size'] < min_size or min_size == -1:
@@ -145,6 +149,37 @@ class PeertubeAddon():
         play_item = xbmcgui.ListItem(path=self.torrent_f)
         xbmcplugin.setResolvedUrl(__handle__, True, listitem=play_item)
 
+    def main_menu(self):
+        """
+        """
+
+        # Create a list for our items.
+        listing = []
+
+        # 1st menu entry
+        list_item = xbmcgui.ListItem(label='Browse selected instance')
+        url = '{0}?action=browse&start=0'.format(__url__)
+        listing.append((url, list_item, False))
+
+        # 2nd menu entry
+        list_item = xbmcgui.ListItem(label='Search on selected instance')
+        url = '{0}?action=select_inst'.format(__url__)
+        listing.append((url, list_item, False))
+
+        # 3rd menu entry
+        list_item = xbmcgui.ListItem(label='Select other instance')
+        url = '{0}?action=select_inst'.format(__url__)
+        listing.append((url, list_item, False))
+
+        # Add our listing to Kodi.
+        xbmcplugin.addDirectoryItems(__handle__, listing, len(listing))
+
+        # Add a sort method for the virtual folder items (alphabetically, ignore articles)
+         xbmcplugin.addSortMethod(__handle__, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
+
+        # Finish creating a virtual folder.
+        xbmcplugin.endOfDirectory(__handle__)
+
     def router(self, paramstring):
         """
         Router function that calls other functions
@@ -159,11 +194,15 @@ class PeertubeAddon():
 
         # Check the parameters passed to the plugin
         if params:
-            # Play a video from a provided URL.
-            self.play_video(params['url'])
+            if params['action'] == 'browse':
+                # List videos on selected instance
+                self.list_videos(params['start']
+            elif params['action'] == 'play':
+                # Play video from provided URL.
+                self.play_video(params['url'])
         else:
-            # Display the list of videos when the plugin is called from Kodi UI without any parameters
-            self.list_videos()
+            # Display the addon's main menu when the plugin is called from Kodi UI without any parameters
+            self.main_menu()
 
 if __name__ == '__main__':
 
