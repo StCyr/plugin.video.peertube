@@ -1,8 +1,5 @@
 # A Kodi Addon to play video hosted on the peertube service (http://joinpeertube.org/)
 #
-# This is just a Proof-Of-Concept atm but I hope I will be able to make it evolve to
-# something worth using.
-#
 # TODO: - Delete downloaded files by default
 #       - Allow people to choose if they want to keep their download after watching?
 #       - Make sure we are seeding when downloading and watching
@@ -149,8 +146,11 @@ class PeertubeAddon():
         #       Sort videos by rating ( + make the sort method configurabe)
         xbmc.log('PeertubeAddon: Searching for videos on instance ' + self.selected_inst, xbmc.LOGDEBUG)
         req = self.selected_inst + '/api/v1/search/videos?search=' + search + '&count=' + str(self.items_per_page) + '&start=' + start
-        resp = urllib2.urlopen(req)
-        videos = json.load(resp)
+        try:
+            resp = urllib2.urlopen(req)
+            videos = json.load(resp)
+        except:
+            xbmcgui.Dialog().notification('Communication error', 'Something went wrong during my search request on ' + self.selected_inst, xbmcgui.NOTIFICATION_ERROR)
 
         # Create array of xmbcgui.ListItem's
         listing = self.create_videos_list(videos, start)
@@ -172,8 +172,11 @@ class PeertubeAddon():
         #       Sort videos by rating ( + make the sort method configurabe)
         xbmc.log('PeertubeAddon: Listing videos from instance ' + self.selected_inst, xbmc.LOGDEBUG)
         req = self.selected_inst + '/api/v1/videos?count=' + str(self.items_per_page) + '&start=' + start
-        resp = urllib2.urlopen(req)
-        videos = json.load(resp)
+        try:
+            resp = urllib2.urlopen(req)
+            videos = json.load(resp)
+        except: 
+            xbmcgui.Dialog().notification('Communication error', 'Something went wrong during my request to ' + self.selected_inst, xbmcgui.NOTIFICATION_ERROR)
 
         # Create array of xmbcgui.ListItem's
         listing = self.create_videos_list(videos, start)
