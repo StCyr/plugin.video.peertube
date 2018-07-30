@@ -26,3 +26,6 @@ msgctxt "#30001"
 msgid "Number of videos to show per page"
 msgstr ""
 
+msgctxt "#30002"
+msgid "Sort method to be used when listing videos"
+msgstr ""

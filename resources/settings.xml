@@ -2,4 +2,5 @@
 <settings>
     <setting id="preferred_instance" type="text" default="https://framatube.org" label="30000"/>
     <setting id="items_per_page" type="select" default="20" values="10|20|50|100" label="30001"/>
+    <setting id="video_sort_method" type="select" values="likes|views" default='views' label="30002"/>
 </settings>
