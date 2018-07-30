@@ -118,7 +118,7 @@ class PeertubeAddon():
             listing.append((url, list_item, False))
 
         # Insert a 'Next' button when there are more videos to list
-        if videos['total'] > ( int(start) + 1 ) * self.items_per_page:
+        if data['total'] > ( int(start) + 1 ) * self.items_per_page:
             start = int(start) + self.items_per_page 
             list_item = xbmcgui.ListItem(label='Next')
             url = '{0}?action=browse&start={1}'.format(self.plugin_url, str(start))
@@ -133,8 +133,8 @@ class PeertubeAddon():
         :result: None
         """
 
-        # Show a 'Search video' dialog
-        search = xbmcgui.Dialog().input(heading='Search video on ' + self.selected_inst, type=xbmcgui.INPUT_ALPHANUM)
+        # Show a 'Search videos' dialog
+        search = xbmcgui.Dialog().input(heading='Search videos on ' + self.selected_inst, type=xbmcgui.INPUT_ALPHANUM)
         # Go back to main menu when user cancels
         if not search:
             self.main_menu()
@@ -149,9 +149,10 @@ class PeertubeAddon():
             videos = json.load(resp)
         except:
             xbmcgui.Dialog().notification('Communication error', 'Error during my search request on ' + self.selected_inst, xbmcgui.NOTIFICATION_ERROR)
+            return
 
         # Create array of xmbcgui.ListItem's
-        listing = self.create_videos_list(videos, start)
+        listing = self.create_list(videos, start)
 
         # Add our listing to Kodi.
         xbmcplugin.addDirectoryItems(self.plugin_id, listing, len(listing))
@@ -174,9 +175,10 @@ class PeertubeAddon():
             videos = json.load(resp)
         except: 
             xbmcgui.Dialog().notification('Communication error', 'Error during my request to ' + self.selected_inst, xbmcgui.NOTIFICATION_ERROR)
+            return
 
         # Create array of xmbcgui.ListItem's
-        listing = self.create_videos_list(videos, start)
+        listing = self.create_list(videos, start)
 
         # Add our listing to Kodi.
         xbmcplugin.addDirectoryItems(self.plugin_id, listing, len(listing))
