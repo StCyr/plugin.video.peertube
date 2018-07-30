@@ -136,7 +136,6 @@ class PeertubeAddon():
 
         # Add our listing to Kodi.
         xbmcplugin.addDirectoryItems(self.plugin_id, listing, len(listing))
-        xbmcplugin.addSortMethod(self.plugin_id, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
         xbmcplugin.endOfDirectory(self.plugin_id)
 
     def play_video_continue(self, data):
