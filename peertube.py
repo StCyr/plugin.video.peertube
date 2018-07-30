@@ -9,6 +9,7 @@
 #       - When downloaded torrents are kept, do we want to seed them all the time,
 #         or only when the addon is running, or only when kodi is playing one,...?
 #       - Do sanity checks on received data
+#       - Handle languages better (with .po files)
 
 import time, sys
 import urllib2, json
@@ -51,21 +52,15 @@ class PeertubeAddon():
         
         return None
 
-    def list_videos(self, start):
+    def create_videos_list(self, videos)
         """
-        Create the list of playable videos in the Kodi interface.
-        :param start: string
-        :return: None
+        Create an array of xmbcgui.ListIten's to be displayed as a folder in Kodi's UI
+        :param videos: dict
+        :result listing: dict
         """
 
-        # Get the list of videos published by the instance
-        # TODO: Handle failures
-        #       Make count configurable
-        #       Set up pagination
-        xbmc.log('PeertubeAddon: Listing videos from instance ' + self.selected_inst, xbmc.LOGDEBUG)
-        req = self.selected_inst + '/api/v1/videos?count=' + str(self.items_per_page) + '&start=' + start
-        resp = urllib2.urlopen(req)
-        videos = json.load(resp)
+        # Create a list for our items
+        listing = []
 
         # Return when no videos are found
         if videos['total'] == 0:
@@ -74,10 +69,8 @@ class PeertubeAddon():
         else:
             xbmc.log('PeertubeAddon: Found ' + str(videos['total']) + ' videos', xbmc.LOGDEBUG)
         
-        # Create a list for our items
-        listing = []
-
         # Insert a 'Previous' button when start > 0 
+        # TODO: See if icon can be changed here and for the "Next" button (by an arraow for example)
         if int(start) > 0:
             start = int(start) - self.items_per_page 
             list_item = xbmcgui.ListItem(label='Previous')
@@ -134,6 +127,57 @@ class PeertubeAddon():
             url = '{0}?action=browse&start={1}'.format(self.plugin_url, str(start))
             listing.append((url, list_item, True))
 
+        return listing
+
+
+    def search_videos(self, start):
+        """
+        Search for videos on selected instance
+        :param start: string
+        :result: None
+        """
+
+        # Show a 'Search video' dialog
+        search = xbmcgui.Dialog().input(heading='Search video on ' + self.selected_inst, type=xbmcgui.INPUT_ALPHANUM)
+        # Go back to main menu when user cancels
+        if not search:
+            self.main_menu()
+
+        # Search for videos on selected PeerTube instance
+        # TODO: Handle failures
+        #       Make count configurable
+        #       Sort videos by rating ( + make the sort method configurabe)
+        xbmc.log('PeertubeAddon: Searching for videos on instance ' + self.selected_inst, xbmc.LOGDEBUG)
+        req = self.selected_inst + '/api/v1/searchs/videos?search=' + search + '&count=' + str(self.items_per_page) + '&start=' + start
+        resp = urllib2.urlopen(req)
+        videos = json.load(resp)
+
+       # Create array of xmbcgui.ListItem's
+       listing = create_videos_list(videos)
+
+        # Add our listing to Kodi.
+        xbmcplugin.addDirectoryItems(self.plugin_id, listing, len(listing))
+        xbmcplugin.endOfDirectory(self.plugin_id)
+        
+    def list_videos(self, start):
+        """
+        Create the list of playable videos in the Kodi interface.
+        :param start: string
+        :return: None
+        """
+
+        # Get the list of videos published by the instance
+        # TODO: Handle failures
+        #       Make count configurable
+        #       Sort videos by rating ( + make the sort method configurabe)
+        xbmc.log('PeertubeAddon: Listing videos from instance ' + self.selected_inst, xbmc.LOGDEBUG)
+        req = self.selected_inst + '/api/v1/videos?count=' + str(self.items_per_page) + '&start=' + start
+        resp = urllib2.urlopen(req)
+        videos = json.load(resp)
+
+       # Create array of xmbcgui.ListItem's
+       listing = create_videos_list(videos)
+
         # Add our listing to Kodi.
         xbmcplugin.addDirectoryItems(self.plugin_id, listing, len(listing))
         xbmcplugin.endOfDirectory(self.plugin_id)
@@ -188,7 +232,7 @@ class PeertubeAddon():
 
         # 2nd menu entry
         list_item = xbmcgui.ListItem(label='Search on selected instance')
-        url = '{0}?action=select_inst'.format(self.plugin_url)
+        url = '{0}?action=search&start=0'.format(self.plugin_url)
         listing.append((url, list_item, False))
 
         # 3rd menu entry
@@ -222,6 +266,9 @@ class PeertubeAddon():
             if params['action'] == 'browse':
                 # List videos on selected instance
                 self.list_videos(params['start'])
+            elif params['action'] == 'search':
+                # Search for videos on selecgted instance
+                self.search_videos()
             elif params['action'] == 'play':
                 # Play video from provided URL.
                 self.play_video(params['url'])
