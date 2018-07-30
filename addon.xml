@@ -21,7 +21,8 @@
     <source>https://github.com/StCyr/plugin.video.peertube</source>
     <news>
 0.2.0
-Implemented navigation in 'browse selected instance' menu
+Implemented 'browse selected instance' functionality 
+Implemented 'search videos on selected instance' functionality
 0.1.1
 4th PoC. 
 First functional PoC with background download
