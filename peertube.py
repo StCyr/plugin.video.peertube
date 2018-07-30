@@ -52,10 +52,10 @@ class PeertubeAddon():
         
         return None
 
-    def create_videos_list(self, videos)
+    def create_videos_list(self, videos, start):
         """
         Create an array of xmbcgui.ListIten's to be displayed as a folder in Kodi's UI
-        :param videos: dict
+        :param videos, start: dict, str
         :result listing: dict
         """
 
@@ -148,12 +148,12 @@ class PeertubeAddon():
         #       Make count configurable
         #       Sort videos by rating ( + make the sort method configurabe)
         xbmc.log('PeertubeAddon: Searching for videos on instance ' + self.selected_inst, xbmc.LOGDEBUG)
-        req = self.selected_inst + '/api/v1/searchs/videos?search=' + search + '&count=' + str(self.items_per_page) + '&start=' + start
+        req = self.selected_inst + '/api/v1/search/videos?search=' + search + '&count=' + str(self.items_per_page) + '&start=' + start
         resp = urllib2.urlopen(req)
         videos = json.load(resp)
 
-       # Create array of xmbcgui.ListItem's
-       listing = create_videos_list(videos)
+        # Create array of xmbcgui.ListItem's
+        listing = self.create_videos_list(videos, start)
 
         # Add our listing to Kodi.
         xbmcplugin.addDirectoryItems(self.plugin_id, listing, len(listing))
@@ -175,8 +175,8 @@ class PeertubeAddon():
         resp = urllib2.urlopen(req)
         videos = json.load(resp)
 
-       # Create array of xmbcgui.ListItem's
-       listing = create_videos_list(videos)
+        # Create array of xmbcgui.ListItem's
+        listing = self.create_videos_list(videos, start)
 
         # Add our listing to Kodi.
         xbmcplugin.addDirectoryItems(self.plugin_id, listing, len(listing))
@@ -268,7 +268,7 @@ class PeertubeAddon():
                 self.list_videos(params['start'])
             elif params['action'] == 'search':
                 # Search for videos on selecgted instance
-                self.search_videos()
+                self.search_videos(params['start'])
             elif params['action'] == 'play':
                 # Play video from provided URL.
                 self.play_video(params['url'])
