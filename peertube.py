@@ -54,7 +54,7 @@ class PeertubeAddon():
     def list_videos(self, start):
         """
         Create the list of playable videos in the Kodi interface.
-        :param start: integer
+        :param start: string
         :return: None
         """
 
@@ -78,7 +78,7 @@ class PeertubeAddon():
         listing = []
 
         # Insert a 'Previous' button when start > 0 
-        if start > 0:
+        if int(start) > 0:
             start = int(start) - self.items_per_page 
             list_item = xbmcgui.ListItem(label='Previous')
             url = '{0}?action=browse&start={1}'.format(self.plugin_url, str(start))
@@ -127,8 +127,8 @@ class PeertubeAddon():
             url = '{0}?action=play&url={1}'.format(self.plugin_url, torrent_url)
             listing.append((url, list_item, False))
 
-        # Insert a 'Next' button if total > (start+1) * items_per_page 
-        if videos['total'] > (start+1) * self.items_per_page:
+        # Insert a 'Next' button when there are more videos to list
+        if videos['total'] > ( int(start) + 1 ) * self.items_per_page:
             start = int(start) + self.items_per_page 
             list_item = xbmcgui.ListItem(label='Next')
             url = '{0}?action=browse&start={1}'.format(self.plugin_url, str(start))
