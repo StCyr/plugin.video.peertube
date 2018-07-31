@@ -39,9 +39,7 @@ class PeertubeAddon():
         self.selected_inst = addon.getSetting('preferred_instance') 
 
         # Get the number of videos to show per page 
-        # TODO: Why doesn't it work?
-        #self.items_per_page = addon.getSetting('items_per_page')
-        self.items_per_page = 20
+        self.items_per_page = int(addon.getSetting('items_per_page'))
 
         # Nothing to play at initialisation
         self.play = 0
@@ -132,8 +130,7 @@ class PeertubeAddon():
             self.main_menu()
 
         # Search for videos on selected PeerTube instance
-        # TODO: Make count configurable
-        #       Sort videos by rating ( + make the sort method configurabe)
+        # TODO: Sort videos by rating ( + make the sort method configurabe)
         xbmc.log('PeertubeAddon: Searching for videos on instance ' + self.selected_inst, xbmc.LOGDEBUG)
         req = self.selected_inst + '/api/v1/search/videos?search=' + search + '&count=' + str(self.items_per_page) + '&start=' + start
         try:
@@ -158,8 +155,7 @@ class PeertubeAddon():
         """
 
         # Get the list of videos published by the instance
-        # TODO: Make count configurable
-        #       Sort videos by rating ( + make the sort method configurabe)
+        # TODO: Sort videos by rating ( + make the sort method configurabe)
         xbmc.log('PeertubeAddon: Listing videos from instance ' + self.selected_inst, xbmc.LOGDEBUG)
         req = self.selected_inst + '/api/v1/videos?count=' + str(self.items_per_page) + '&start=' + start
         try:
