@@ -18,6 +18,7 @@ This code is still proof-of-concept but it works, and you're welcome to improve 
 
 * This addon doesn't support Webtorrent yet. So, it cannot download/share from/to regular PeerTube clients.
 The reason is that it uses the libtorrent python libray which doesn't support it yet (see https://github.com/arvidn/libtorrent/issues/223)
+* The addon doesn't delete the downloaded files atm. So, it may fills up your disk 
 
 # Requirements
 
