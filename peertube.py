@@ -41,6 +41,9 @@ class PeertubeAddon():
         # Get the number of videos to show per page 
         self.items_per_page = int(addon.getSetting('items_per_page'))
 
+        # Get the video sort method
+        self.sort_method = addon.getSetting('video_sort_method')
+
         # Nothing to play at initialisation
         self.play = 0
         self.torrent_name = ''
@@ -131,10 +134,9 @@ class PeertubeAddon():
             self.main_menu()
 
         # Search for videos on selected PeerTube instance
-        # TODO: Sort videos by rating ( + make the sort method configurabe)
-        xbmc.log('PeertubeAddon: Searching for videos on instance ' + self.selected_inst, xbmc.LOGDEBUG)
-        req = self.selected_inst + '/api/v1/search/videos?search=' + search + '&count=' + str(self.items_per_page) + '&start=' + start
         try:
+            xbmc.log('PeertubeAddon: Searching for videos on instance ' + self.selected_inst, xbmc.LOGDEBUG)
+            req = '{0}/api/v1/search/videos?search={1}&count={2}&start={3}&sort={4}'.format(self.selected_inst, search, self.items_per_page, start, self.sort_method)
             resp = urllib2.urlopen(req)
             videos = json.load(resp)
         except:
@@ -156,10 +158,9 @@ class PeertubeAddon():
         """
 
         # Get the list of videos published by the instance
-        # TODO: Sort videos by rating ( + make the sort method configurabe)
-        xbmc.log('PeertubeAddon: Listing videos from instance ' + self.selected_inst, xbmc.LOGDEBUG)
-        req = self.selected_inst + '/api/v1/videos?count=' + str(self.items_per_page) + '&start=' + start
         try:
+            xbmc.log('PeertubeAddon: Listing videos from instance ' + self.selected_inst, xbmc.LOGDEBUG)
+            req = '{0}/api/v1/videos?count={1}&start={2}&sort={3}'.format(self.selected_inst, self.items_per_page, start, self.sort_method)
             resp = urllib2.urlopen(req)
             videos = json.load(resp)
         except: 
