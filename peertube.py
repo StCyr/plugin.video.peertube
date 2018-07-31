@@ -74,36 +74,36 @@ class PeertubeAddon():
 
         return data
 
-    def create_list(self, data, data_type, start):
+    def create_list(self, lst, data_type, start):
         """
-        Create an array of xmbcgui.ListItem's from the data parameter
-        :param data, data_type, start: dict, str, str
+        Create an array of xmbcgui.ListItem's from the lst parameter
+        :param lst, data_type, start: dict, str, str
         :result listing: array
         """
         # Create a list for our items.
         listing = []
-        for item in data['data']:
+        for data in lst['data']:
 
             # Create a list item with a text label
-            list_item = xbmcgui.ListItem(label=item['name'])
+            list_item = xbmcgui.ListItem(label=data['name'])
         
             if data_type == 'videos':
                 # Add thumbnail
-                list_item.setArt({'thumb': self.selected_inst + '/' + item['thumbnailPath']})
+                list_item.setArt({'thumb': self.selected_inst + '/' + data['thumbnailPath']})
 
                 # Set a fanart image for the list item.
-                #list_item.setProperty('fanart_image', item['thumb'])
+                #list_item.setProperty('fanart_image', data['thumb'])
 
                 # Compute media info from item's metadata
-                info = {'title': item['name'],
-                        'playcount': item['views'],
-                        'plotoutline': item['description'],
-                        'duration': item['duration']
+                info = {'title':data['name'],
+                        'playcount': data['views'],
+                        'plotoutline': data['description'],
+                        'duration': data['duration']
                         }
 
                 # For videos, add a rating based on likes and dislikes
-                if item['likes'] > 0 or item['dislikes'] > 0:
-                    info['rating'] = item['likes']/(item['likes'] + item['dislikes'])
+                if data['likes'] > 0 or data['dislikes'] > 0:
+                    info['rating'] = data['likes']/(data['likes'] + data['dislikes'])
 
                 # Set additional info for the list item.
                 list_item.setInfo('video', info) 
@@ -114,7 +114,7 @@ class PeertubeAddon():
                 # Find video's torrent URL
                 # TODO: Error handling
                 min_size = -1
-                resp = urllib2.urlopen(self.selected_inst + '/api/v1/videos/' + item['uuid'])
+                resp = urllib2.urlopen(self.selected_inst + '/api/v1/videos/' + data['uuid'])
                 metadata = json.load(resp)
                 for f in metadata['files']:
                   if f['size'] < min_size or min_size == -1:
@@ -127,14 +127,14 @@ class PeertubeAddon():
                 list_item.setProperty('IsPlayable', 'false')
 
                 # Set URL to select this instance
-                url = '{0}?action=select_instance&url={1}'.format(self.plugin_url, item['host'])
+                url = '{0}?action=select_instance&url={1}'.format(self.plugin_url, data['host'])
 
             # Add our item to the listing as a 3-element tuple.
             listing.append((url, list_item, False))
 
         # Add a 'Next page' button when there are more data to show
         start = int(start) + self.items_per_page
-        if data['total'] > start:
+        if lst['total'] > start:
             list_item = xbmcgui.ListItem( label='Next page ({0})'.format(start/self.items_per_page) )
             url = '{0}?action=browse_{1}&start={2}'.format(self.plugin_url, data_type, start)
             listing.append((url, list_item, True))
