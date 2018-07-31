@@ -269,8 +269,9 @@ class PeertubeAddon():
         :return: None
         """
  
-        xbmc.log('PeertubeAddon: Changing currently selected instance to ({0})'.format(instance, xbmc.LOGDEBUG)
-        self.selected_inst = instance
+        self.selected_inst = 'https://' + instance
+        xbmcgui.Dialog().notification('Current instance changed', 'Changed current instance to {0}'.format(self.selected_inst), xbmcgui.NOTIFICATION_INFO)
+        xbmc.log('PeertubeAddon: Changing currently selected instance to {0}'.format(self.selected_inst), xbmc.LOGDEBUG)
 
         return None
 
