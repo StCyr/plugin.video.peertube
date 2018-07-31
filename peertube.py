@@ -2,11 +2,10 @@
 #
 # TODO: - Delete downloaded files by default
 #       - Allow people to choose if they want to keep their download after watching?
-#       - Make sure we are seeding when downloading and watching
-#       - When downloaded torrents are kept, do we want to seed them all the time,
-#         or only when the addon is running, or only when kodi is playing one,...?
 #       - Do sanity checks on received data
 #       - Handle languages better (with .po files)
+#       - Get the best quality torrent given settings and/or available bandwidth
+#         See how they do that in the peerTube client's code 
 
 import time, sys
 import urllib2, json
@@ -50,78 +49,101 @@ class PeertubeAddon():
         
         return None
 
-    def create_list(self, data, start):
+    def query_peertube(self, req):
         """
-        Create an array of xmbcgui.ListIten's to be displayed as a folder in Kodi's UI
-        :param videos, start: dict, str
-        :result listing: dict
+        Issue a PeerTube API request and return the results
+        :param req: str
+        :result data: dict
         """
 
-        # Create a list for our items
-        listing = []
+        # Send the PeerTube REST API request
+        try:
+            xbmc.log('PeertubeAddon: Issuing request {0}'.format(req), xbmc.LOGDEBUG)
+            resp = urllib2.urlopen(req)
+            data = json.load(resp)
+        except:
+            xbmcgui.Dialog().notification('Communication error', 'Error during my request on {0}'.format(self.selected_inst), xbmcgui.NOTIFICATION_ERROR)
+            return None
 
         # Return when no results are found
         if data['total'] == 0:
             xbmc.log('PeertubeAddon: No result found', xbmc.LOGDEBUG)
-            return
+            return None
         else:
-            xbmc.log('PeertubeAddon: Found ' + str(data['total']) + ' results', xbmc.LOGDEBUG)
-        
+            xbmc.log('PeertubeAddon: Found {0} results'.format(data['total']), xbmc.LOGDEBUG)
+
+        return data
+
+    def create_list(self, data, data_type, start):
+        """
+        Create an array of xmbcgui.ListItem's from the data parameter
+        :param data, data_type, start: dict, str, str
+        :result listing: array
+        """
         # Create a list for our items.
+        listing = []
         for item in data['data']:
 
             # Create a list item with a text label
             list_item = xbmcgui.ListItem(label=item['name'])
         
-            # Add thumbnail
-            list_item.setArt({'thumb': self.selected_inst + '/' + item['thumbnailPath']})
+            if data_type == 'videos':
+                # Add thumbnail
+                list_item.setArt({'thumb': self.selected_inst + '/' + item['thumbnailPath']})
 
-            # Set a fanart image for the list item.
-            #list_item.setProperty('fanart_image', item['thumb'])
+                # Set a fanart image for the list item.
+                #list_item.setProperty('fanart_image', item['thumb'])
 
-            # Compute media info from item's metadata
-            info = {'title': item['name'],
-                    'playcount': item['views'],
-                    'plotoutline': item['description'],
-                    'duration': item['duration']
-                    }
+                # Compute media info from item's metadata
+                info = {'title': item['name'],
+                        'playcount': item['views'],
+                        'plotoutline': item['description'],
+                        'duration': item['duration']
+                        }
 
-            # For videos, add a rating based on likes and dislikes
-            if item['likes'] > 0 or item['dislikes'] > 0:
-                info['rating'] = item['likes']/(item['likes'] + item['dislikes'])
+                # For videos, add a rating based on likes and dislikes
+                if item['likes'] > 0 or item['dislikes'] > 0:
+                    info['rating'] = item['likes']/(item['likes'] + item['dislikes'])
 
-            # Set additional info for the list item.
-            list_item.setInfo('video', info) 
+                # Set additional info for the list item.
+                list_item.setInfo('video', info) 
 
-            # This is mandatory for playable items!
-            list_item.setProperty('IsPlayable', 'true')
+                # Videos are playable
+                list_item.setProperty('IsPlayable', 'true')
 
-            # Find smallest file's torrentUrl
-            # TODO: Get the best quality torrent given settings and/or available bandwidth
-            #       See how they do that in the peerTube client's code 
-            min_size = -1
-            resp = urllib2.urlopen(self.selected_inst + '/api/v1/videos/' + item['uuid'])
-            metadata = json.load(resp)
-            for f in metadata['files']:
-              if f['size'] < min_size or min_size == -1:
-                torrent_url = f['torrentUrl'] 
+                # Find video's torrent URL
+                # TODO: Error handling
+                min_size = -1
+                resp = urllib2.urlopen(self.selected_inst + '/api/v1/videos/' + item['uuid'])
+                metadata = json.load(resp)
+                for f in metadata['files']:
+                  if f['size'] < min_size or min_size == -1:
+                    torrent_url = f['torrentUrl'] 
+                url = '{0}?action=play_video&url={1}'.format(self.plugin_url, torrent_url)
+            
+            elif data_type == 'instances':
+
+                # Instances are not playable
+                list_item.setProperty('IsPlayable', 'false')
+
+                # Set URL to select this instance
+                url = '{0}?action=select_instance&url={1}'.format(self.plugin_url, item['host'])
 
             # Add our item to the listing as a 3-element tuple.
-            url = '{0}?action=play&url={1}'.format(self.plugin_url, torrent_url)
             listing.append((url, list_item, False))
 
-        # Insert a 'Next' button when there are more videos to list
+        # Add a 'Next page' button when there are more data to show
         start = int(start) + self.items_per_page
         if data['total'] > start:
-            list_item = xbmcgui.ListItem(label='Next page ({0})'.format(start/self.items_per_page)
-            url = '{0}?action=browse&start={1}'.format(self.plugin_url, start)
+            list_item = xbmcgui.ListItem( label='Next page ({0})'.format(start/self.items_per_page) )
+            url = '{0}?action=browse_{1}&start={2}'.format(self.plugin_url, data_type, start)
             listing.append((url, list_item, True))
 
         return listing
 
     def search_videos(self, start):
         """
-        Search for videos on selected instance
+        Function to search for videos on a PeerTube instance and navigate in the results
         :param start: string
         :result: None
         """
@@ -132,47 +154,65 @@ class PeertubeAddon():
         # Go back to main menu when user cancels
         if not search:
             self.main_menu()
+         
+        # Create the PeerTube REST API request for searching videos
+        req = '{0}/api/v1/search/videos?search={1}&count={2}&start={3}&sort={4}'.format(self.selected_inst, search, self.items_per_page, start, self.sort_method)
 
-        # Search for videos on selected PeerTube instance
-        try:
-            xbmc.log('PeertubeAddon: Searching for videos on instance ' + self.selected_inst, xbmc.LOGDEBUG)
-            req = '{0}/api/v1/search/videos?search={1}&count={2}&start={3}&sort={4}'.format(self.selected_inst, search, self.items_per_page, start, self.sort_method)
-            resp = urllib2.urlopen(req)
-            videos = json.load(resp)
-        except:
-            xbmcgui.Dialog().notification('Communication error', 'Error during my search request on ' + self.selected_inst, xbmcgui.NOTIFICATION_ERROR)
-            return
+        # Send the query
+        results = self.query_peertube(req)
 
         # Create array of xmbcgui.ListItem's
-        listing = self.create_list(videos, start)
+        listing = self.create_list(results, 'videos', start)
 
         # Add our listing to Kodi.
         xbmcplugin.addDirectoryItems(self.plugin_id, listing, len(listing))
         xbmcplugin.endOfDirectory(self.plugin_id)
+
+        return None
         
-    def list_videos(self, start):
+    def browse_videos(self, start):
         """
-        Create the list of playable videos in the Kodi interface.
+        Function to navigate through all the video published by a PeerTube instance
         :param start: string
         :return: None
         """
 
-        # Get the list of videos published by the instance
-        try:
-            xbmc.log('PeertubeAddon: Listing videos from instance ' + self.selected_inst, xbmc.LOGDEBUG)
-            req = '{0}/api/v1/videos?count={1}&start={2}&sort={3}'.format(self.selected_inst, self.items_per_page, start, self.sort_method)
-            resp = urllib2.urlopen(req)
-            videos = json.load(resp)
-        except: 
-            xbmcgui.Dialog().notification('Communication error', 'Error during my request to ' + self.selected_inst, xbmcgui.NOTIFICATION_ERROR)
-            return
+        # Create the PeerTube REST API request for listing videos
+        req = '{0}/api/v1/videos?count={1}&start={2}&sort={3}'.format(self.selected_inst, self.items_per_page, start, self.sort_method)
+
+        # Send the query
+        results = self.query_peertube(req)
 
         # Create array of xmbcgui.ListItem's
-        listing = self.create_list(videos, start)
+        listing = self.create_list(results, 'videos', start)
 
         # Add our listing to Kodi.
         xbmcplugin.addDirectoryItems(self.plugin_id, listing, len(listing))
         xbmcplugin.endOfDirectory(self.plugin_id)
+
+        return None
+
+    def browse_instances(self, start):
+        """ 
+        Function to navigate through all PeerTube instances
+        :param start: str
+        :return: None
+        """
+
+        # Create the PeerTube REST API request for browsing PeerTube instances
+        req = '{0}/api/v1/instances?count={1}&start={2}'.format('https://instances.joinpeertube.org', self.items_per_page, start)
+
+        # Send the query
+        results = self.query_peertube(req)
+
+        # Create array of xmbcgui.ListItem's
+        listing = self.create_list(results, 'instances', start)
+
+        # Add our listing to Kodi.
+        xbmcplugin.addDirectoryItems(self.plugin_id, listing, len(listing))
+        xbmcplugin.endOfDirectory(self.plugin_id)
+ 
+        return None
 
     def play_video_continue(self, data):
         """
@@ -186,7 +226,7 @@ class PeertubeAddon():
         self.play = 1    
         self.torrent_f = data['file']
 
-        return
+        return None
 
     def play_video(self, torrent_url):
         """
@@ -195,7 +235,7 @@ class PeertubeAddon():
         :return: None
         """
 
-        xbmc.log('PeertubeAddon: playing video ' + torrent_url, xbmc.LOGDEBUG)
+        xbmc.log('PeertubeAddon: Starting torrent download ({0})'.format(torrent_url), xbmc.LOGDEBUG)
 
         # Start a downloader thread
         AddonSignals.sendSignal('start_download', {'url': torrent_url})
@@ -210,14 +250,28 @@ class PeertubeAddon():
         # Abort in case of timeout
         if timeout == 10:
             xbmcgui.Dialog().notification('Download timeout', 'Timeout fetching ' + torrent_url, xbmcgui.NOTIFICATION_ERROR)
-            return
+            return None
         else:
             # Wait a little before starting playing the torrent
             xbmc.sleep(3000)
 
         # Pass the item to the Kodi player for actual playback.
+        xbmc.log('PeertubeAddon: Starting video playback ({0})'.format(torrent_url), xbmc.LOGDEBUG)
         play_item = xbmcgui.ListItem(path=self.torrent_f)
         xbmcplugin.setResolvedUrl(self.plugin_id, True, listitem=play_item)
+
+        return None
+        
+    def select_instance(self, instance):
+        """
+        Change currently selected instance to 'instance' parameter
+        :param instance: str
+        :return: None
+        """
+ 
+        self.selected_inst = instance
+
+        return None
 
     def main_menu(self):
         """
@@ -231,17 +285,17 @@ class PeertubeAddon():
 
         # 1st menu entry
         list_item = xbmcgui.ListItem(label='Browse selected instance')
-        url = '{0}?action=browse&start=0'.format(self.plugin_url)
+        url = '{0}?action=browse_videos&start=0'.format(self.plugin_url)
         listing.append((url, list_item, True))
 
         # 2nd menu entry
         list_item = xbmcgui.ListItem(label='Search on selected instance')
-        url = '{0}?action=search&start=0'.format(self.plugin_url)
+        url = '{0}?action=search_videos&start=0'.format(self.plugin_url)
         listing.append((url, list_item, False))
 
         # 3rd menu entry
         list_item = xbmcgui.ListItem(label='Select other instance')
-        url = '{0}?action=select_inst&start=0'.format(self.plugin_url)
+        url = '{0}?action=browse_instances&start=0'.format(self.plugin_url)
         listing.append((url, list_item, False))
 
         # Add our listing to Kodi.
@@ -249,6 +303,8 @@ class PeertubeAddon():
 
         # Finish creating a virtual folder.
         xbmcplugin.endOfDirectory(self.plugin_id)
+ 
+        return None
 
     def router(self, paramstring):
         """
@@ -264,21 +320,25 @@ class PeertubeAddon():
 
         # Check the parameters passed to the plugin
         if params:
-            if params['action'] == 'browse':
-                # List videos on selected instance
-                self.list_videos(params['start'])
-            elif params['action'] == 'search':
+            if params['action'] == 'browse_videos':
+                # Browse videos on selected instance
+                self.browse_videos(params['start'])
+            elif params['action'] == 'search_videos':
                 # Search for videos on selected instance
                 self.search_videos(params['start'])
-            elif params['action'] == 'select_inst':
-                # Select another peerTube instance
-                self.select_instance(params['start'])
-            elif params['action'] == 'play':
+            elif params['action'] == 'browse_instances':
+                # Browse peerTube instances
+                self.browse_instances(params['start'])
+            elif params['action'] == 'play_video':
                 # Play video from provided URL.
                 self.play_video(params['url'])
+            elif params['action'] == 'select_instance':
+                self.select_instance(params['url'])
         else:
             # Display the addon's main menu when the plugin is called from Kodi UI without any parameters
             self.main_menu()
+
+        return None
 
 if __name__ == '__main__':
 
