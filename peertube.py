@@ -22,7 +22,7 @@ class PeertubeAddon():
     def __init__(self, plugin, plugin_id):
         """
         Initialisation of the PeertubeAddon class
-        :param: None
+        :param plugin, plugin_id: str, int
         :return: None
         """
 
@@ -125,6 +125,7 @@ class PeertubeAddon():
 
         # Show a 'Search videos' dialog
         search = xbmcgui.Dialog().input(heading='Search videos on ' + self.selected_inst, type=xbmcgui.INPUT_ALPHANUM)
+
         # Go back to main menu when user cancels
         if not search:
             self.main_menu()
@@ -210,6 +211,9 @@ class PeertubeAddon():
 
     def main_menu(self):
         """
+        Addon's main menu
+        :param: None
+        :return: None
         """
 
         # Create a list for our items.
@@ -232,9 +236,6 @@ class PeertubeAddon():
 
         # Add our listing to Kodi.
         xbmcplugin.addDirectoryItems(self.plugin_id, listing, len(listing))
-
-        # Add a sort method for the virtual folder items (alphabetically, ignore articles)
-        xbmcplugin.addSortMethod(self.plugin_id, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
 
         # Finish creating a virtual folder.
         xbmcplugin.endOfDirectory(self.plugin_id)
