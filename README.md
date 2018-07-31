@@ -6,13 +6,13 @@ This code is still proof-of-concept but it works, and you're welcome to improve 
 
 * Browse all videos on a PeerTube instance 
 * Search for videos on a PeerTube instance (Only supported by 1.0.0-beta10+ instances)
-* Select Peertube instance to use (Not implemented yet)
+* Select Peertube instance to use
 
 # User settings
 
 * User definable preferred PeerTube instance 
-* Number of videos to display per page (Not implemented yet)
-* Sort method to be used when listing videos (Not implemented yet) 
+* Number of videos to display per page
+* Sort method to be used when listing videos (Currently, only 'views' and 'likes') 
 
 # Limitations
 
@@ -23,5 +23,4 @@ The reason is that it uses the libtorrent python libray which doesn't support it
 # Requirements
 
 * Kodi 17 or above
-
 

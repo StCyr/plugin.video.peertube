@@ -122,7 +122,7 @@ class PeertubeAddon():
                 url = '{0}?action=play_video&url={1}'.format(self.plugin_url, torrent_url)
             
             elif data_type == 'instances':
-
+                # TODO: Add a context menu to select instance as preferred instance
                 # Instances are not playable
                 list_item.setProperty('IsPlayable', 'false')
 
