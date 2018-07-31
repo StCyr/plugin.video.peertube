@@ -153,13 +153,18 @@ class PeertubeAddon():
 
         # Go back to main menu when user cancels
         if not search:
-            self.main_menu()
+            return None
          
         # Create the PeerTube REST API request for searching videos
         req = '{0}/api/v1/search/videos?search={1}&count={2}&start={3}&sort={4}'.format(self.selected_inst, search, self.items_per_page, start, self.sort_method)
 
         # Send the query
         results = self.query_peertube(req)
+
+        # Exit directly when no result is found
+        if not results:
+            xbmcgui.Dialog().notification('No videos found', 'No videos found matching query', xbmcgui.NOTIFICATION_WARNING)
+            return None
 
         # Create array of xmbcgui.ListItem's
         listing = self.create_list(results, 'videos', start)
