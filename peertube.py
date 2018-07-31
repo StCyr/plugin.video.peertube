@@ -110,10 +110,10 @@ class PeertubeAddon():
             listing.append((url, list_item, False))
 
         # Insert a 'Next' button when there are more videos to list
-        if data['total'] > ( int(start) + 1 ) * self.items_per_page:
-            start = int(start) + self.items_per_page 
-            list_item = xbmcgui.ListItem(label='Next')
-            url = '{0}?action=browse&start={1}'.format(self.plugin_url, str(start))
+        start = int(start) + self.items_per_page
+        if data['total'] > start:
+            list_item = xbmcgui.ListItem(label='Next page ({0})'.format(start/self.items_per_page)
+            url = '{0}?action=browse&start={1}'.format(self.plugin_url, start)
             listing.append((url, list_item, True))
 
         return listing
