@@ -66,14 +66,6 @@ class PeertubeAddon():
         else:
             xbmc.log('PeertubeAddon: Found ' + str(data['total']) + ' results', xbmc.LOGDEBUG)
         
-        # Insert a 'Previous' button when start > 0 
-        # TODO: See if icon can be changed here and for the "Next" button (by an arrow for example)
-        if int(start) > 0:
-            start = int(start) - self.items_per_page 
-            list_item = xbmcgui.ListItem(label='Previous')
-            url = '{0}?action=browse&start={1}'.format(self.plugin_url, str(start))
-            listing.append((url, list_item, True))
-
         # Create a list for our items.
         for item in data['data']:
 
