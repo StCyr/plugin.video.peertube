@@ -195,15 +195,24 @@ class PeertubeAddon():
         """
 
         xbmc.log('PeertubeAddon: playing video ' + torrent_url, xbmc.LOGDEBUG)
+
         # Start a downloader thread
         AddonSignals.sendSignal('start_download', {'url': torrent_url})
 
-        # Wait until the PeerTubeDownloader has downloaded all the torrent's metadata + a little bit more
-        # TODO: Add a timeout
+        # Wait until the PeerTubeDownloader has downloaded all the torrent's metadata 
         AddonSignals.registerSlot('plugin.video.peertube', 'metadata_downloaded', self.play_video_continue)
-        while self.play == 0:
+        timeout = 0
+        while self.play == 0 and timeout < 10:
             xbmc.sleep(1000)
-        xbmc.sleep(3000)
+            timeout += 1
+
+        # Abort in case of timeout
+        if timeout == 10:
+            xbmcgui.Dialog().notification('Download timeout', 'Timeout fetching ' + torrent_url, xbmcgui.NOTIFICATION_ERROR)
+            return
+        else:
+            # Wait a little before starting playing the torrent
+            xbmc.sleep(3000)
 
         # Pass the item to the Kodi player for actual playback.
         play_item = xbmcgui.ListItem(path=self.torrent_f)
