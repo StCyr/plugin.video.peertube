@@ -269,6 +269,7 @@ class PeertubeAddon():
         :return: None
         """
  
+        xbmc.log('PeertubeAddon: Changing currently selected instance to ({0})'.format(instance, xbmc.LOGDEBUG)
         self.selected_inst = instance
 
         return None
@@ -291,12 +292,12 @@ class PeertubeAddon():
         # 2nd menu entry
         list_item = xbmcgui.ListItem(label='Search on selected instance')
         url = '{0}?action=search_videos&start=0'.format(self.plugin_url)
-        listing.append((url, list_item, False))
+        listing.append((url, list_item, True))
 
         # 3rd menu entry
         list_item = xbmcgui.ListItem(label='Select other instance')
         url = '{0}?action=browse_instances&start=0'.format(self.plugin_url)
-        listing.append((url, list_item, False))
+        listing.append((url, list_item, True))
 
         # Add our listing to Kodi.
         xbmcplugin.addDirectoryItems(self.plugin_id, listing, len(listing))
