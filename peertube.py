@@ -114,14 +114,40 @@ class PeertubeAddon():
                 # Videos are playable
                 list_item.setProperty('IsPlayable', 'true')
 
-                # Find video's torrent URL
+                # Find the URL of the best possible video matching user's preferrence
                 # TODO: Error handling
-                min_size = -1
+                current_res = 0
+                higher_res = -1
+                torrent_url = ''
                 resp = urllib2.urlopen(self.selected_inst + '/api/v1/videos/' + data['uuid'])
                 metadata = json.load(resp)
+                xbmc.log('PeertubeAddon: Looking for the best possible video matching user preferrences', xbmc.LOGDEBUG)
                 for f in metadata['files']:
-                  if f['size'] < min_size or min_size == -1:
+                  # Get file resolution
+                  res = f['resolution']['id']
+                  if res == self.preferred_resolution:
+                    # Stop directly, when we find the exact same resolution as the user's preferred one
+                    xbmc.log('PeertubeAddon: Found video with preferred resolution', xbmc.LOGDEBUG)
                     torrent_url = f['torrentUrl'] 
+                    break
+                  elif res < self.preferred_resolution and res > current_res:
+                    # Else, try to find the best one just below the user's preferred one
+                    xbmc.log('PeertubeAddon: Found video with good lower resolution ({0})'.format(f['resolution']['label']), xbmc.LOGDEBUG)
+                    torrent_url = f['torrentUrl'] 
+                    current_res = res
+                  elif res > self.preferred_resolution and ( res < higher_res or higher_res == -1 ):
+                    # In the worth case, we'll take the one just above the user's preferred one
+                    xbmc.log('PeertubeAddon: Saving video with higher resolution ({0}) as a possible alternative'.format(f['resolution']['label']), xbmc.LOGDEBUG)
+                    backup_url = f['torrentUrl'] 
+                    higher_res = res
+
+                # Use smallest file with an higher resolution, when we didn't find a resolution equal or
+                # slower than the user's preferred one
+                if not torrent_url:
+                  xbmc.log('PeertubeAddon: Using video with higher resolution as alternative', xbmc.LOGDEBUG)
+                  torrent_url = backup_url
+
+                # Compose the correct URL for Kodi
                 url = '{0}?action=play_video&url={1}'.format(self.plugin_url, torrent_url)
             
             elif data_type == 'instances':
