@@ -29,3 +29,7 @@ msgstr ""
 msgctxt "#30002"
 msgid "Sort method to be used when listing videos"
 msgstr ""
+
+msgctxt "#30002"
+msgid "Preferred video resolution"
+msgstr ""

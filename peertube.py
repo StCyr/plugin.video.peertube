@@ -43,6 +43,9 @@ class PeertubeAddon():
         # Get the video sort method
         self.sort_method = addon.getSetting('video_sort_method')
 
+        # Get the preferred resolution for video
+        self.preferred_resolution = addon.getSetting('preferred_resolution')
+
         # Nothing to play at initialisation
         self.play = 0
         self.torrent_name = ''
