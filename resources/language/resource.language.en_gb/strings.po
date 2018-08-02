@@ -33,3 +33,7 @@ msgstr ""
 msgctxt "#30002"
 msgid "Preferred video resolution"
 msgstr ""
+
+msgctxt "#30004"
+msgid "Delete downloaded videos when Kodi exits"
+msgstr ""
