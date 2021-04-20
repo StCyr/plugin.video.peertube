@@ -11,6 +11,8 @@
   <extension point="xbmc.addon.metadata">
     <summary lang="en_GB">Plugin for PeerTube</summary>
     <description lang="en_GB">PeerTube is a federated open source alternative to YouTube</description>
+    <summary lang="fr_FR">Extension pour PeerTube</summary>
+    <description lang="fr_FR">PeerTube est une alternative libre et fédérée à YouTube </description>
     <disclaimer lang="en_GB"></disclaimer>
     <language></language>
     <platform>all</platform>
